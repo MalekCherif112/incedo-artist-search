@@ -4,13 +4,13 @@ const artistService = require('../services/artist.service')
 
 
 export function getArtist(req: Request, res: Response, next: NextFunction) {
-    const { name }= req.query;
+    const { name, limit, page }= req.query;
 
     if (!name){
         res.status(400).send("Artist name is required.")
         return;
     }
-    artistService.searchArtistByName(name as string)
+    artistService.searchArtistByName(name as string, limit as string, page as string)
         .then((data: any) => res.json(data))
         .catch((err: Error) => res.status(500).send("Third party service call error."))
 }
