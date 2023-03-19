@@ -10,6 +10,10 @@ module.exports = {
     mode: NODE_ENV,
     target: 'node',
     watch: NODE_ENV === 'development',
+    watchOptions: {
+        poll: true,
+        ignored: /node_modules/
+    },
     output: {
         path: path.resolve(__dirname, 'build'),
         filename: 'index.js'
@@ -31,7 +35,10 @@ module.exports = {
     plugins: [
         new WebpackShellPluginNext({
             onBuildEnd: {
-                scripts: ['npm run run:dev']}
+                scripts: ['npm run run:dev'],
+                blocking: false,
+                parallel: true
+            }
         })
     ]
 }

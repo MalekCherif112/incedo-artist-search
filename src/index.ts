@@ -1,14 +1,14 @@
 import express from 'express';
-import { Request, Response } from 'express';
+
+const dotenv = require('dotenv');
+dotenv.config();
 
 const app = express();
-const { PORT = 3000 } = process.env;
+const {PORT = 3000} = process.env;
+const artistRouter = require('./artist/routes/artist.routes');
 
-app.get('/', (req: Request, res: Response) => {
-    res.send({
-        message: 'hello world',
-    });
-});
+app.use('/artist', artistRouter);
+
 app.listen(PORT, () => {
-    console.log('server started at http://localhost:'+ PORT);
+    console.log('server started at http://localhost:' + PORT);
 });
