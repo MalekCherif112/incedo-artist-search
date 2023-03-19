@@ -1,6 +1,10 @@
 import axios from "axios";
-import {ArtistSearchResponse, LastFmArtistsDto} from "../models/last-fm-artists.dto";
+
+const fs = require('fs');
+
+import {ArtistSearchResponse} from "../models/last-fm-artists.dto";
 import {ArtistDto} from "../models/artist.dto";
+import {WRITING_TO_JSON_ERROR} from "../../common/error-code";
 
 const BASE_URL = "http://ws.audioscrobbler.com/2.0/";
 
@@ -9,6 +13,39 @@ const PARAMS = [
     ["api_key", process.env.LAST_FM_API_KEY || ""],
     ["format", "json"]
 ]
+
+function searchArtistByNameOrFallBack(searchQuery: string, limit: string, page: string = "1"): Promise<ArtistDto[]> {
+    return searchArtistByName(searchQuery, limit, page).then(
+        (artists) => artists.length ? artists : getFallBackArtists(limit)
+    )
+}
+
+function generateCsvFile(searchQuery: string, limit: string, page: string): Promise<string> {
+    return searchArtistByNameOrFallBack(searchQuery, limit, page)
+        .then(artists => artists.map(artist => artist.toCsvLine()).join('\n'))
+        .then(csvBody => ArtistDto.getCsvHeaders() + csvBody);
+}
+
+function generateJsonFallbackFile() {
+    const alphabets = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R',
+        'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'];
+
+    // 20 artists for each character
+    return Promise.all(alphabets.map(letter => searchArtistByName(letter, "20")))
+        .then((lists: ArtistDto[][]) => lists.flat())
+        .then((list) =>
+            new Promise((resolve, reject) =>
+                fs.writeFile(__dirname + "/random_artists.json",
+                    JSON.stringify(list), (err: Error) => {
+                        if (err) {
+                            reject(WRITING_TO_JSON_ERROR);
+                        }
+                        resolve("write success")
+                    }
+                )
+            )
+        );
+}
 
 function getQueryParams(artist: string, limit: string, page: string): URLSearchParams {
     return new URLSearchParams([
@@ -19,7 +56,7 @@ function getQueryParams(artist: string, limit: string, page: string): URLSearchP
     ]);
 }
 
-function searchArtistByName(searchQuery: string, limit: string, page: string): Promise<ArtistDto[]> {
+function searchArtistByName(searchQuery: string, limit: string, page: string = "1"): Promise<ArtistDto[]> {
     return axios.get<ArtistSearchResponse>(
         BASE_URL,
         {params: getQueryParams(searchQuery, limit, page)}
@@ -28,13 +65,16 @@ function searchArtistByName(searchQuery: string, limit: string, page: string): P
         .then(artists => artists.map(artist => ArtistDto.fromLastFmResponse(artist)));
 }
 
-function generateCsvFile(searchQuery: string, limit: string, page: string): Promise<string> {
-    return searchArtistByName(searchQuery, limit, page)
-        .then(artists => artists.map(artist => artist.toCsvLine()).join('\n'))
-        .then(csvBody => ArtistDto.getCsvHeaders() + csvBody );
+function getFallBackArtists(limit: string): ArtistDto[] {
+    //To return a string instead of a Promise
+    const artists: ArtistDto[] = JSON.parse(fs.readFileSync("build/random_artists.json"));
+    return artists.sort(() => 0.5 - Math.random())
+        .slice(0, parseInt(limit))
+        .map(item => new ArtistDto(item.name, item.mbid, item.url, item.image_small, item.image))
 }
 
 module.exports = {
-    searchArtistByName,
-    generateCsvFile
+    searchArtistByNameOrFallBack,
+    generateCsvFile,
+    generateJsonFallbackFile
 }

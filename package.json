@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "build": "webpack",
-    "run:dev": "cross-env NODE_ENV=development nodemon build/index.js",
+    "run:dev": "cross-env NODE_ENV=development nodemon --ignore 'build/*.json' build/index.js",
     "start:dev": "cross-env NODE_ENV=development webpack --watch --config webpack.config.js"
   },
   "repository": {
