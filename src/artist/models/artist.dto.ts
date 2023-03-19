@@ -24,4 +24,12 @@ export class ArtistDto {
 
         return new ArtistDto(dto.name, dto.mbid, dto.url, small_image_url, large_image_url);
     }
+
+    toCsvLine() {
+        return this.name + ',' + this.mbid + ',' + this.url + ',' + this.image_small + ',' + this.image;
+    }
+
+    static getCsvHeaders() {
+        return "name,mbid,url,image_small,image\n";
+    }
 }
