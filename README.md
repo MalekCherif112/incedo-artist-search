@@ -6,6 +6,8 @@ This project is developed by Malek Cherif as a submission for incedo technical t
 The goal of this project is to fetch artists a list of artists by name
 based on Last.FM API. The format of response can be either JSON or CSV.
 
+This project was developed with typescipt, express and webpack.
+
 
 ## Endpoints 
 
