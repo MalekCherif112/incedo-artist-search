@@ -7,6 +7,7 @@ import {ArtistDto} from "../models/artist.dto";
 import {WRITING_TO_JSON_ERROR} from "../../common/error-code";
 
 const BASE_URL = "http://ws.audioscrobbler.com/2.0/";
+const JSON_FALLBACK_FILE = __dirname + "/random_artists.json";
 
 const PARAMS = [
     ["method", "artist.search"],
@@ -35,7 +36,7 @@ function generateJsonFallbackFile() {
         .then((lists: ArtistDto[][]) => lists.flat())
         .then((list) =>
             new Promise((resolve, reject) =>
-                fs.writeFile(__dirname + "/random_artists.json",
+                fs.writeFile(JSON_FALLBACK_FILE,
                     JSON.stringify(list), (err: Error) => {
                         if (err) {
                             reject(WRITING_TO_JSON_ERROR);
@@ -66,11 +67,18 @@ function searchArtistByName(searchQuery: string, limit: string, page: string = "
 }
 
 function getFallBackArtists(limit: string): ArtistDto[] {
-    //To return a string instead of a Promise
-    const artists: ArtistDto[] = JSON.parse(fs.readFileSync("build/random_artists.json"));
-    return artists.sort(() => 0.5 - Math.random())
-        .slice(0, parseInt(limit))
-        .map(item => new ArtistDto(item.name, item.mbid, item.url, item.image_small, item.image))
+
+    try {
+        //To return a string instead of a Promise
+        const artists: ArtistDto[] = JSON.parse(fs.readFileSync(JSON_FALLBACK_FILE));
+        return artists.sort(() => 0.5 - Math.random())
+            .slice(0, parseInt(limit))
+            .map(item => new ArtistDto(item.name, item.mbid, item.url, item.image_small, item.image))
+    } catch (err) {
+        return [];
+    }
+
+
 }
 
 module.exports = {
