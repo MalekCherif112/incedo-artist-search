@@ -8,25 +8,20 @@ const PARAMS = [
     ["format", "json"]
 ]
 
-function getQueryParams(artist: string): URLSearchParams{
+function getQueryParams(artist: string): URLSearchParams {
     return new URLSearchParams([
         ...PARAMS, ["artist", artist]
     ]);
 }
 
-async function searchArtistByName(searchQuery: string){
+function searchArtistByName(searchQuery: string): Promise<ArtistDto[]> {
 
-    try {
-        const artists: LastFmArtistsDto[]  = await axios.get<ArtistSearchResponse>(
-            "http://ws.audioscrobbler.com/2.0/",
-            {params: getQueryParams(searchQuery)}
-        ).then(res =>  res.data?.results?.artistmatches?.artist);
-
-        return artists.map(artist => ArtistDto.fromLastFmResponse(artist));
-    }
-    catch (err) {
-        console.log(err);
-    }
+    return axios.get<ArtistSearchResponse>(
+        "http://ws.audioscrobbler.com/2.0/",
+        {params: getQueryParams(searchQuery)}
+    )
+        .then(res => res.data?.results?.artistmatches?.artist)
+        .then(artists => artists.map(artist => ArtistDto.fromLastFmResponse(artist)));
 }
 
 module.exports = {

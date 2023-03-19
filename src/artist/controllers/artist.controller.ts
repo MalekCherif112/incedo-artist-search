@@ -1,14 +1,16 @@
-import { Request, Response, NextFunction } from 'express';
+import {Request, Response, NextFunction} from 'express';
 
 const artistService = require('../services/artist.service')
 
 
 export function getArtist(req: Request, res: Response, next: NextFunction) {
-    try {
-        artistService.searchArtistByName(req.query.name as string)
-            .then((data: any) => res.json(data));
+    const { name }= req.query;
+
+    if (!name){
+        res.status(400).send("Artist name is required.")
+        return;
     }
-    catch (err) {
-        res.status(500).send("Third party service call error.");
-    }
+    artistService.searchArtistByName(name as string)
+        .then((data: any) => res.json(data))
+        .catch((err: Error) => res.status(500).send("Third party service call error."))
 }
