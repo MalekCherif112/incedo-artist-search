@@ -9,6 +9,9 @@ based on Last.FM API. The format of response can be either JSON or CSV.
 This project was developed with typescipt, express and webpack.
 
 
+[This is the project postman collection link.]( https://api.postman.com/collections/26141553-16c397d2-2a1d-4bbb-886c-ef17a79afc48?access_key=PMAT-01GVXZQ0Q7SXJXN74FZS25MG1T)
+
+
 ## Endpoints 
 
 1. `/artist/populate`: this endpoint populates a JSON file name random_artists.json.
